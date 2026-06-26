@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaintenanceAuto - Espace Mécanicien</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .sidebar {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            min-height: 100vh;
+            width: 250px;
+            position: fixed;
+            top: 0; left: 0;
+            padding: 20px;
+        }
+        .sidebar .logo {
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.7);
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: rgba(52,152,219,0.3);
+            color: white;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        .navbar-top {
+            background: white;
+            padding: 15px 30px;
+            margin: -30px -30px 30px -30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .badge { border-radius: 8px; padding: 6px 12px; }
+        .btn-primary { border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-wrench fa-2x text-primary mb-2"></i>
+            <h5 class="text-white mb-0">MaintenanceAuto</h5>
+            <small class="text-white-50">Espace Mécanicien</small>
+        </div>
+        <nav>
+            <a href="#" class="nav-link active" onclick="showSection('rendezvous', event)">
+                <i class="fas fa-calendar me-2"></i>Rendez-vous
+            </a>
+            <a href="#" class="nav-link" onclick="showSection('interventions', event)">
+                <i class="fas fa-tools me-2"></i>Mes Interventions
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="navbar-top">
+            <h5 class="mb-0">Bonjour, <span id="username-display"></span> 🔧</h5>
+            <button class="btn btn-primary btn-sm" onclick="logout()">
+                <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+            </button>
+        </div>
+
+        <!-- Section Rendez-vous -->
+        <div id="section-rendezvous">
+            <h4 class="mb-4"><i class="fas fa-calendar text-primary me-2"></i>Rendez-vous à traiter</h4>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Client</th>
+                                <th>Véhicule</th>
+                                <th>Motif</th>
+                                <th>Statut</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liste-rendezvous"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Interventions -->
+        <div id="section-interventions" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4><i class="fas fa-tools text-primary me-2"></i>Mes Interventions</h4>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalIntervention">
+                    <i class="fas fa-plus me-2"></i>Nouvelle intervention
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>N°</th>
+                                <th>Rendez-vous</th>
+                                <th>Description</th>
+                                <th>Date début</th>
+                                <th>Date fin</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liste-interventions"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nouvelle Intervention -->
+    <div class="modal fade" id="modalIntervention" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header bg-primary text-white" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="modal-title"><i class="fas fa-tools me-2"></i>Nouvelle intervention</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label">Rendez-vous</label>
+                        <select id="i-rendezvous" class="form-select"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea id="i-description" class="form-control" rows="3" placeholder="Décrivez l'intervention..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date début</label>
+                        <input type="datetime-local" id="i-date-debut" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date fin</label>
+                        <input type="datetime-local" id="i-date-fin" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="creerIntervention()">Créer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ajouter Pièce -->
+    <div class="modal fade" id="modalPiece" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header bg-warning text-dark" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="modal-title"><i class="fas fa-cog me-2"></i>Ajouter une pièce</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="p-intervention-id">
+                    <div class="mb-3">
+                        <label class="form-label">Pièce</label>
+                        <select id="p-piece" class="form-select"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantité</label>
+                        <input type="number" id="p-quantite" class="form-control" value="1" min="1">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-warning" onclick="ajouterPiece()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const username = localStorage.getItem('username');
+        if (!localStorage.getItem('access_token')) window.location.href = '/';
+        document.getElementById('username-display').textContent = username;
+
+        async function fetchAvecToken(url, options = {}) {
+            let access = localStorage.getItem('access_token');
+            options.headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${access}`
+            };
+            let res = await fetch(url, options);
+            if (res.status === 401) {
+                const refreshRes = await fetch('/api/auth/refresh/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh: localStorage.getItem('refresh_token') })
+                });
+                if (refreshRes.ok) {
+                    const data = await refreshRes.json();
+                    localStorage.setItem('access_token', data.access);
+                    options.headers['Authorization'] = `Bearer ${data.access}`;
+                    res = await fetch(url, options);
+                } else {
+                    localStorage.clear();
+                    window.location.href = '/';
+                }
+            }
+            return res;
+        }
+
+        function showSection(section, event) {
+            document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('d-none'));
+            document.getElementById(`section-${section}`).classList.remove('d-none');
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            if (event) event.target.closest('.nav-link').classList.add('active');
+            if (section === 'rendezvous') chargerRendezVous();
+            if (section === 'interventions') chargerInterventions();
+        }
+
+        // Charger les rendez-vous
+        async function chargerRendezVous() {
+            const res = await fetchAvecToken('/api/rendezvous/');
+            const data = await res.json();
+            const tbody = document.getElementById('liste-rendezvous');
+            tbody.innerHTML = '';
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Aucun rendez-vous</td></tr>';
+                return;
+            }
+            data.forEach(rdv => {
+                const statut = {
+                    'en_attente': '<span class="badge bg-warning">En attente</span>',
+                    'confirme': '<span class="badge bg-success">Confirmé</span>',
+                    'annule': '<span class="badge bg-danger">Annulé</span>',
+                    'termine': '<span class="badge bg-secondary">Terminé</span>',
+                }[rdv.statut];
+                tbody.innerHTML += `
+                <tr>
+                    <td>${new Date(rdv.date).toLocaleString('fr-FR')}</td>
+                    <td>${rdv.client_nom || rdv.client}</td>
+                    <td>${rdv.vehicule_info || rdv.vehicule}</td>
+                    <td>${rdv.motif}</td>
+                    <td>${statut}</td>
+                    <td>
+                        <button class="btn btn-sm btn-success" onclick="changerStatut(${rdv.id}, 'confirme')">
+                            <i class="fas fa-check"></i> Confirmer
+                        </button>
+                        <button class="btn btn-sm btn-secondary ms-1" onclick="changerStatut(${rdv.id}, 'termine')">
+                            <i class="fas fa-flag"></i> Terminer
+                        </button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        // Changer statut RDV
+        async function changerStatut(id, statut) {
+            const res = await fetchAvecToken(`/api/rendezvous/${id}/`, {
+                method: 'PATCH',
+                body: JSON.stringify({ statut })
+            });
+            if (res.ok) chargerRendezVous();
+            else alert('Erreur lors du changement de statut');
+        }
+
+        // Charger les interventions
+        async function chargerInterventions() {
+            const res = await fetchAvecToken('/api/interventions/');
+            const data = await res.json();
+            const tbody = document.getElementById('liste-interventions');
+            tbody.innerHTML = '';
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Aucune intervention</td></tr>';
+                return;
+            }
+            data.forEach(i => {
+                tbody.innerHTML += `
+                <tr>
+                    <td>#${i.id}</td>
+                    <td>${i.rendezvous_info || ('RDV #' + i.rendezvous)}</td>
+                    <td>${i.description}</td>
+                    <td>${new Date(i.date_debut).toLocaleString('fr-FR')}</td>
+                    <td>${i.date_fin ? new Date(i.date_fin).toLocaleString('fr-FR') : '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="ouvrirModalPiece(${i.id})">
+                            <i class="fas fa-cog"></i> Ajouter pièce
+                        </button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        // Créer une intervention
+        async function creerIntervention() {
+            const body = {
+                rendezvous: document.getElementById('i-rendezvous').value,
+                description: document.getElementById('i-description').value,
+                date_debut: document.getElementById('i-date-debut').value,
+                date_fin: document.getElementById('i-date-fin').value || null,
+            };
+            const res = await fetchAvecToken('/api/interventions/', {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalIntervention')).hide();
+                chargerInterventions();
+            } else {
+                const data = await res.json();
+                alert('Erreur : ' + JSON.stringify(data));
+            }
+        }
+
+        // Ouvrir modal pièce
+        async function ouvrirModalPiece(interventionId) {
+            document.getElementById('p-intervention-id').value = interventionId;
+            const res = await fetchAvecToken('/api/pieces/');
+            const data = await res.json();
+            const select = document.getElementById('p-piece');
+            select.innerHTML = '';
+            if (Array.isArray(data)) {
+                data.forEach(p => {
+                    select.innerHTML += `<option value="${p.id}">${p.nom} - ${p.prix_unitaire} FCFA (stock: ${p.stock})</option>`;
+                });
+            }
+            new bootstrap.Modal(document.getElementById('modalPiece')).show();
+        }
+
+        // Ajouter une pièce à l'intervention
+        async function ajouterPiece() {
+            const interventionId = document.getElementById('p-intervention-id').value;
+            const body = {
+                piece_id: document.getElementById('p-piece').value,
+                quantite: parseInt(document.getElementById('p-quantite').value),
+            };
+            const res = await fetchAvecToken(`/api/interventions/${interventionId}/ajouter-piece/`, {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalPiece')).hide();
+                alert('Pièce ajoutée avec succès !');
+            } else {
+                const data = await res.json();
+                alert('Erreur : ' + JSON.stringify(data));
+            }
+        }
+
+        // Charger RDV dans le select
+        async function chargerRDVSelect() {
+            const res = await fetchAvecToken('/api/rendezvous/');
+            const data = await res.json();
+            const select = document.getElementById('i-rendezvous');
+            select.innerHTML = '';
+            if (Array.isArray(data)) {
+                data.forEach(rdv => {
+                    select.innerHTML += `<option value="${rdv.id}">RDV #${rdv.id} - ${rdv.motif}</option>`;
+                });
+            }
+        }
+
+        document.getElementById('modalIntervention').addEventListener('show.bs.modal', chargerRDVSelect);
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        // Charger au démarrage
+        chargerRendezVous();
+    </script>
+</body>
+</html>

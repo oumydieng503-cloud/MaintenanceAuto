@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaintenanceAuto - Espace Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .sidebar {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            min-height: 100vh;
+            width: 250px;
+            position: fixed;
+            top: 0; left: 0;
+            padding: 20px;
+        }
+        .sidebar .logo {
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.7);
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: rgba(39,174,96,0.3);
+            color: white;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        .navbar-top {
+            background: white;
+            padding: 15px 30px;
+            margin: -30px -30px 30px -30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .stat-card {
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            border: none;
+        }
+        .badge { border-radius: 8px; padding: 6px 12px; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-cogs fa-2x text-success mb-2"></i>
+            <h5 class="text-white mb-0">MaintenanceAuto</h5>
+            <small class="text-white-50">Espace Admin</small>
+        </div>
+        <nav>
+            <a href="#" class="nav-link active" onclick="showSection('dashboard', event)">
+                <i class="fas fa-chart-pie me-2"></i>Tableau de bord
+            </a>
+            <a href="#" class="nav-link" onclick="showSection('utilisateurs', event)">
+                <i class="fas fa-users me-2"></i>Utilisateurs
+            </a>
+            <a href="#" class="nav-link" onclick="showSection('pieces', event)">
+                <i class="fas fa-cog me-2"></i>Stock Pièces
+            </a>
+            <a href="#" class="nav-link" onclick="showSection('rendezvous', event)">
+                <i class="fas fa-calendar me-2"></i>Rendez-vous
+            </a>
+            <a href="#" class="nav-link" onclick="showSection('factures', event)">
+                <i class="fas fa-file-invoice me-2"></i>Factures
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="navbar-top">
+            <h5 class="mb-0">Bonjour, <span id="username-display"></span> ⚙️</h5>
+            <button class="btn btn-success btn-sm" onclick="logout()">
+                <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+            </button>
+        </div>
+
+        <!-- Section Dashboard -->
+        <div id="section-dashboard">
+            <h4 class="mb-4"><i class="fas fa-chart-pie text-success me-2"></i>Tableau de bord</h4>
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                        <i class="fas fa-users fa-2x mb-3"></i>
+                        <h3 id="stat-users">-</h3>
+                        <p class="mb-0">Utilisateurs</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                        <i class="fas fa-calendar fa-2x mb-3"></i>
+                        <h3 id="stat-rdv">-</h3>
+                        <p class="mb-0">Rendez-vous</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #27ae60, #229954);">
+                        <i class="fas fa-tools fa-2x mb-3"></i>
+                        <h3 id="stat-interventions">-</h3>
+                        <p class="mb-0">Interventions</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f39c12, #d35400);">
+                        <i class="fas fa-file-invoice fa-2x mb-3"></i>
+                        <h3 id="stat-factures">-</h3>
+                        <p class="mb-0">Factures</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Utilisateurs -->
+        <div id="section-utilisateurs" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4><i class="fas fa-users text-success me-2"></i>Utilisateurs</h4>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalUser">
+                    <i class="fas fa-plus me-2"></i>Nouvel utilisateur
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Username</th>
+                                <th>Nom complet</th>
+                                <th>Email</th>
+                                <th>Rôle</th>
+                                <th>Téléphone</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liste-utilisateurs"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Pièces -->
+        <div id="section-pieces" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4><i class="fas fa-cog text-success me-2"></i>Stock Pièces</h4>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalPiece">
+                    <i class="fas fa-plus me-2"></i>Ajouter une pièce
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nom</th>
+                                <th>Référence</th>
+                                <th>Prix unitaire</th>
+                                <th>Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liste-pieces"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Rendez-vous -->
+        <div id="section-rendezvous" class="d-none">
+            <h4 class="mb-4"><i class="fas fa-calendar text-success me-2"></i>Tous les Rendez-vous</h4>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Client</th>
+                                <th>Véhicule</th>
+                                <th>Motif</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liste-rendezvous"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Factures -->
+        <div id="section-factures" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4><i class="fas fa-file-invoice text-success me-2"></i>Toutes les Factures</h4>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalFacture">
+                    <i class="fas fa-plus me-2"></i>Créer une facture
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>N°</th>
+                                <th>Date</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liste-factures"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nouvel Utilisateur -->
+    <div class="modal fade" id="modalUser" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header bg-success text-white" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Nouvel utilisateur</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" id="u-username" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mot de passe</label>
+                        <input type="password" id="u-password" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="u-email" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prénom</label>
+                        <input type="text" id="u-prenom" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nom</label>
+                        <input type="text" id="u-nom" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Rôle</label>
+                        <select id="u-role" class="form-select">
+                            <option value="mecanicien">Mécanicien</option>
+                            <option value="administrateur">Administrateur</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Téléphone</label>
+                        <input type="text" id="u-telephone" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-success" onclick="creerUtilisateur()">Créer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ajouter Pièce -->
+    <div class="modal fade" id="modalPiece" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header bg-success text-white" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="modal-title"><i class="fas fa-cog me-2"></i>Ajouter une pièce</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label">Nom</label>
+                        <input type="text" id="p-nom" class="form-control" placeholder="Pneu Michelin">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Référence</label>
+                        <input type="text" id="p-reference" class="form-control" placeholder="PN-001">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prix unitaire (FCFA)</label>
+                        <input type="number" id="p-prix" class="form-control" placeholder="45000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Stock initial</label>
+                        <input type="number" id="p-stock" class="form-control" placeholder="10">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-success" onclick="ajouterPiece()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Créer Facture -->
+    <div class="modal fade" id="modalFacture" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header bg-success text-white" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="modal-title"><i class="fas fa-file-invoice me-2"></i>Créer une facture</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label">Intervention</label>
+                        <select id="f-intervention" class="form-select"></select>
+                    </div>
+                    <p class="text-muted small mb-0">Le montant sera calculé automatiquement à partir des pièces utilisées.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-success" onclick="creerFacture()">Créer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const username = localStorage.getItem('username');
+        if (!localStorage.getItem('access_token')) window.location.href = '/';
+        document.getElementById('username-display').textContent = username;
+
+        async function fetchAvecToken(url, options = {}) {
+            let access = localStorage.getItem('access_token');
+            options.headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${access}`
+            };
+            let res = await fetch(url, options);
+            if (res.status === 401) {
+                const refreshRes = await fetch('/api/auth/refresh/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh: localStorage.getItem('refresh_token') })
+                });
+                if (refreshRes.ok) {
+                    const data = await refreshRes.json();
+                    localStorage.setItem('access_token', data.access);
+                    options.headers['Authorization'] = `Bearer ${data.access}`;
+                    res = await fetch(url, options);
+                } else {
+                    localStorage.clear();
+                    window.location.href = '/';
+                }
+            }
+            return res;
+        }
+
+        function showSection(section, event) {
+            document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('d-none'));
+            document.getElementById(`section-${section}`).classList.remove('d-none');
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            if (event) event.target.closest('.nav-link').classList.add('active');
+            if (section === 'dashboard') chargerStats();
+            if (section === 'utilisateurs') chargerUtilisateurs();
+            if (section === 'pieces') chargerPieces();
+            if (section === 'rendezvous') chargerRendezVous();
+            if (section === 'factures') chargerFactures();
+        }
+
+        // Charger les stats
+        async function chargerStats() {
+            const [users, rdv, interventions, factures] = await Promise.all([
+                fetchAvecToken('/api/profils/').then(r => r.json()),
+                fetchAvecToken('/api/rendezvous/').then(r => r.json()),
+                fetchAvecToken('/api/interventions/').then(r => r.json()),
+                fetchAvecToken('/api/factures/').then(r => r.json()),
+            ]);
+            document.getElementById('stat-users').textContent = Array.isArray(users) ? users.length : '-';
+            document.getElementById('stat-rdv').textContent = Array.isArray(rdv) ? rdv.length : '-';
+            document.getElementById('stat-interventions').textContent = Array.isArray(interventions) ? interventions.length : '-';
+            document.getElementById('stat-factures').textContent = Array.isArray(factures) ? factures.length : '-';
+        }
+
+        // Charger les utilisateurs
+        async function chargerUtilisateurs() {
+            const res = await fetchAvecToken('/api/profils/');
+            const data = await res.json();
+            const tbody = document.getElementById('liste-utilisateurs');
+            tbody.innerHTML = '';
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun utilisateur</td></tr>';
+                return;
+            }
+            data.forEach(p => {
+                const roleBadge = {
+                    'client': '<span class="badge bg-danger">Client</span>',
+                    'mecanicien': '<span class="badge bg-primary">Mécanicien</span>',
+                    'administrateur': '<span class="badge bg-success">Admin</span>',
+                }[p.role];
+                tbody.innerHTML += `
+                <tr>
+                    <td>${p.user.username}</td>
+                    <td>${p.user.first_name} ${p.user.last_name}</td>
+                    <td>${p.user.email}</td>
+                    <td>${roleBadge}</td>
+                    <td>${p.telephone || '-'}</td>
+                </tr>`;
+            });
+        }
+
+        // Charger les pièces
+        async function chargerPieces() {
+            const res = await fetchAvecToken('/api/pieces/');
+            const data = await res.json();
+            const tbody = document.getElementById('liste-pieces');
+            tbody.innerHTML = '';
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Aucune pièce</td></tr>';
+                return;
+            }
+            data.forEach(p => {
+                const stockBadge = p.stock < 5
+                    ? `<span class="badge bg-danger">${p.stock}</span>`
+                    : `<span class="badge bg-success">${p.stock}</span>`;
+                tbody.innerHTML += `
+                <tr>
+                    <td>${p.nom}</td>
+                    <td>${p.reference}</td>
+                    <td>${parseFloat(p.prix_unitaire).toLocaleString('fr-FR')} FCFA</td>
+                    <td>${stockBadge}</td>
+                </tr>`;
+            });
+        }
+
+        // Charger les rendez-vous
+        async function chargerRendezVous() {
+            const res = await fetchAvecToken('/api/rendezvous/');
+            const data = await res.json();
+            const tbody = document.getElementById('liste-rendezvous');
+            tbody.innerHTML = '';
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun rendez-vous</td></tr>';
+                return;
+            }
+            data.forEach(rdv => {
+                const statut = {
+                    'en_attente': '<span class="badge bg-warning">En attente</span>',
+                    'confirme': '<span class="badge bg-success">Confirmé</span>',
+                    'annule': '<span class="badge bg-danger">Annulé</span>',
+                    'termine': '<span class="badge bg-secondary">Terminé</span>',
+                }[rdv.statut];
+                tbody.innerHTML += `
+                <tr>
+                    <td>${new Date(rdv.date).toLocaleString('fr-FR')}</td>
+                    <td>${rdv.client_nom || rdv.client}</td>
+                    <td>${rdv.vehicule_info || rdv.vehicule}</td>
+                    <td>${rdv.motif}</td>
+                    <td>${statut}</td>
+                </tr>`;
+            });
+        }
+
+        // Charger les factures
+        async function chargerFactures() {
+            const res = await fetchAvecToken('/api/factures/');
+            const data = await res.json();
+            const tbody = document.getElementById('liste-factures');
+            tbody.innerHTML = '';
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucune facture</td></tr>';
+                return;
+            }
+            data.forEach(f => {
+                const statut = {
+                    'en_attente': '<span class="badge bg-warning">En attente</span>',
+                    'payee': '<span class="badge bg-success">Payée</span>',
+                    'annulee': '<span class="badge bg-danger">Annulée</span>',
+                }[f.statut_paiement];
+                tbody.innerHTML += `
+                <tr>
+                    <td>#${f.id}</td>
+                    <td>${new Date(f.date_emission).toLocaleDateString('fr-FR')}</td>
+                    <td>${parseFloat(f.montant_total).toLocaleString('fr-FR')} FCFA</td>
+                    <td>${statut}</td>
+                    <td>
+                        <button class="btn btn-sm btn-success" onclick="marquerPayee(${f.id})">
+                            <i class="fas fa-check"></i> Marquer payée
+                        </button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        // Marquer facture comme payée
+        async function marquerPayee(id) {
+            const res = await fetchAvecToken(`/api/factures/${id}/`, {
+                method: 'PATCH',
+                body: JSON.stringify({ statut_paiement: 'payee' })
+            });
+            if (res.ok) chargerFactures();
+            else alert('Erreur lors de la mise à jour');
+        }
+
+        // Créer utilisateur
+        async function creerUtilisateur() {
+            const body = {
+                username: document.getElementById('u-username').value,
+                password: document.getElementById('u-password').value,
+                email: document.getElementById('u-email').value,
+                first_name: document.getElementById('u-prenom').value,
+                last_name: document.getElementById('u-nom').value,
+                role: document.getElementById('u-role').value,
+                telephone: document.getElementById('u-telephone').value,
+            };
+            const res = await fetchAvecToken('/api/auth/creer-staff/', {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalUser')).hide();
+                chargerUtilisateurs();
+            } else {
+                const data = await res.json();
+                alert('Erreur : ' + JSON.stringify(data));
+            }
+        }
+
+        // Ajouter pièce
+        async function ajouterPiece() {
+            const body = {
+                nom: document.getElementById('p-nom').value,
+                reference: document.getElementById('p-reference').value,
+                prix_unitaire: parseFloat(document.getElementById('p-prix').value),
+                stock: parseInt(document.getElementById('p-stock').value),
+            };
+            const res = await fetchAvecToken('/api/pieces/', {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalPiece')).hide();
+                chargerPieces();
+            } else {
+                const data = await res.json();
+                alert('Erreur : ' + JSON.stringify(data));
+            }
+        }
+
+        // Charger interventions dans select facture
+        async function chargerInterventionsSelect() {
+            const res = await fetchAvecToken('/api/interventions/');
+            const data = await res.json();
+            const select = document.getElementById('f-intervention');
+            select.innerHTML = '';
+            if (Array.isArray(data)) {
+                data.forEach(i => {
+                    select.innerHTML += `<option value="${i.id}">Intervention #${i.id} - ${i.description.substring(0, 30)}</option>`;
+                });
+            }
+        }
+
+        // Créer facture
+        async function creerFacture() {
+            const interventionId = document.getElementById('f-intervention').value;
+            const res = await fetchAvecToken(`/api/interventions/${interventionId}/generer-facture/`, {
+                method: 'POST'
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalFacture')).hide();
+                chargerFactures();
+            } else {
+                const data = await res.json();
+                alert('Erreur : ' + JSON.stringify(data));
+            }
+        }
+
+        document.getElementById('modalFacture').addEventListener('show.bs.modal', chargerInterventionsSelect);
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        // Charger au démarrage
+        chargerStats();
+    </script>
+</body>
+</html>
