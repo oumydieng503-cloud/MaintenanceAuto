@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaintenanceAuto - Espace Client</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .sidebar {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            min-height: 100vh;
+            width: 250px;
+            position: fixed;
+            top: 0; left: 0;
+            padding: 20px;
+        }
+        .sidebar .logo {
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.7);
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: rgba(231,76,60,0.3);
+            color: white;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        .navbar-top {
+            background: white;
+            padding: 15px 30px;
+            margin: -30px -30px 30px -30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-danger { border-radius: 10px; }
+        .badge { border-radius: 8px; padding: 6px 12px; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-car fa-2x text-danger mb-2"></i>
+            <h5 class="text-white mb-0">MaintenanceAuto</h5>
+            <small class="text-white-50">Espace Client</small>
+        </div>
+        <nav>
+            <a href="#" class="nav-link active" onclick="showSection('vehicules', event)">
+                <i class="fas fa-car me-2"></i>Mes Véhicules
+            </a>
+            <a href="#" class="nav-link" onclick="showSection('rendezvous', event)">
+                <i class="fas fa-calendar me-2"></i>Mes Rendez-vous
+            </a>
+            <a href="#" class="nav-link" onclick="showSection('factures', event)">
+                <i class="fas fa-file-invoice me-2"></i>Mes Factures
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="navbar-top">
+            <h5 class="mb-0">Bonjour, <span id="username-display"></span> 👋</h5>
+            <button class="btn btn-danger btn-sm" onclick="logout()">
+                <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+            </button>
+        </div>
+
+        <!-- Section Véhicules -->
+        <div id="section-vehicules">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4><i class="fas fa-car text-danger me-2"></i>Mes Véhicules</h4>
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalVehicule">
+                    <i class="fas fa-plus me-2"></i>Ajouter un véhicule
+                </button>
+            </div>
+            <div class="row" id="liste-vehicules"></div>
+        </div>
+
+        <!-- Section Rendez-vous -->
+        <div id="section-rendezvous" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4><i class="fas fa-calendar text-danger me-2"></i>Mes Rendez-vous</h4>
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalRDV">
+                    <i class="fas fa-plus me-2"></i>Prendre un RDV
+                </button>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Véhicule</th>
+                                <th>Motif</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liste-rendezvous"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Factures -->
+        <div id="section-factures" class="d-none">
+            <h4 class="mb-4"><i class="fas fa-file-invoice text-danger me-2"></i>Mes Factures</h4>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>N° Facture</th>
+                                <th>Date</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liste-factures"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ajouter Véhicule -->
+    <div class="modal fade" id="modalVehicule" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header bg-danger text-white" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="modal-title"><i class="fas fa-car me-2"></i>Ajouter un véhicule</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label">Marque</label>
+                        <input type="text" id="v-marque" class="form-control" placeholder="Toyota">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Modèle</label>
+                        <input type="text" id="v-modele" class="form-control" placeholder="Corolla">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Immatriculation</label>
+                        <input type="text" id="v-immatriculation" class="form-control" placeholder="DK-1234-AB">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Année</label>
+                        <input type="number" id="v-annee" class="form-control" placeholder="2020">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kilométrage</label>
+                        <input type="number" id="v-kilometrage" class="form-control" placeholder="50000">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-danger" onclick="ajouterVehicule()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Prendre RDV -->
+    <div class="modal fade" id="modalRDV" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header bg-danger text-white" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="modal-title"><i class="fas fa-calendar me-2"></i>Prendre un rendez-vous</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label">Véhicule</label>
+                        <select id="rdv-vehicule" class="form-select"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date et heure</label>
+                        <input type="datetime-local" id="rdv-date" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Motif</label>
+                        <textarea id="rdv-motif" class="form-control" rows="3" placeholder="Décrivez le problème..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-danger" onclick="prendreRDV()">Confirmer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const username = localStorage.getItem('username');
+        if (!localStorage.getItem('access_token')) window.location.href = '/';
+        document.getElementById('username-display').textContent = username;
+
+        // Fonction fetch avec rafraîchissement automatique du token
+        async function fetchAvecToken(url, options = {}) {
+            let access = localStorage.getItem('access_token');
+            options.headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${access}`
+            };
+            let res = await fetch(url, options);
+            if (res.status === 401) {
+                const refreshRes = await fetch('/api/auth/refresh/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh: localStorage.getItem('refresh_token') })
+                });
+                if (refreshRes.ok) {
+                    const data = await refreshRes.json();
+                    localStorage.setItem('access_token', data.access);
+                    options.headers['Authorization'] = `Bearer ${data.access}`;
+                    res = await fetch(url, options);
+                } else {
+                    localStorage.clear();
+                    window.location.href = '/';
+                }
+            }
+            return res;
+        }
+
+        // Afficher une section
+        function showSection(section, event) {
+            document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('d-none'));
+            document.getElementById(`section-${section}`).classList.remove('d-none');
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            if (event) event.target.closest('.nav-link').classList.add('active');
+            if (section === 'vehicules') chargerVehicules();
+            if (section === 'rendezvous') chargerRendezVous();
+            if (section === 'factures') chargerFactures();
+        }
+
+        // Charger les véhicules
+        async function chargerVehicules() {
+            const res = await fetchAvecToken('/api/vehicules/');
+            const data = await res.json();
+            const liste = document.getElementById('liste-vehicules');
+            liste.innerHTML = '';
+            if (!Array.isArray(data) || data.length === 0) {
+                liste.innerHTML = '<div class="col-12"><p class="text-muted text-center">Aucun véhicule enregistré</p></div>';
+                return;
+            }
+            data.forEach(v => {
+                liste.innerHTML += `
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-danger rounded-circle p-3 me-3">
+                                    <i class="fas fa-car text-white"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">${v.marque} ${v.modele}</h6>
+                                    <small class="text-muted">${v.immatriculation}</small>
+                                </div>
+                            </div>
+                            <p class="mb-1"><i class="fas fa-calendar text-muted me-2"></i>Année : ${v.annee}</p>
+                            <p class="mb-0"><i class="fas fa-road text-muted me-2"></i>${v.kilometrage} km</p>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        // Charger les rendez-vous
+        async function chargerRendezVous() {
+            const res = await fetchAvecToken('/api/rendezvous/');
+            const data = await res.json();
+            const tbody = document.getElementById('liste-rendezvous');
+            tbody.innerHTML = '';
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Aucun rendez-vous</td></tr>';
+                return;
+            }
+            data.forEach(rdv => {
+                const statut = {
+                    'en_attente': '<span class="badge bg-warning">En attente</span>',
+                    'confirme': '<span class="badge bg-success">Confirmé</span>',
+                    'annule': '<span class="badge bg-danger">Annulé</span>',
+                    'termine': '<span class="badge bg-secondary">Terminé</span>',
+                }[rdv.statut];
+                tbody.innerHTML += `
+                <tr>
+                    <td>${new Date(rdv.date).toLocaleString('fr-FR')}</td>
+                    <td>${rdv.vehicule_info || rdv.vehicule}</td>
+                    <td>${rdv.motif}</td>
+                    <td>${statut}</td>
+                </tr>`;
+            });
+        }
+
+        // Charger les factures
+        async function chargerFactures() {
+            const res = await fetchAvecToken('/api/factures/');
+            const data = await res.json();
+            const tbody = document.getElementById('liste-factures');
+            tbody.innerHTML = '';
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Aucune facture</td></tr>';
+                return;
+            }
+            data.forEach(f => {
+                const statut = {
+                    'en_attente': '<span class="badge bg-warning">En attente</span>',
+                    'payee': '<span class="badge bg-success">Payée</span>',
+                    'annulee': '<span class="badge bg-danger">Annulée</span>',
+                }[f.statut_paiement];
+                tbody.innerHTML += `
+                <tr>
+                    <td>#${f.id}</td>
+                    <td>${new Date(f.date_emission).toLocaleDateString('fr-FR')}</td>
+                    <td>${parseFloat(f.montant_total).toLocaleString('fr-FR')} FCFA</td>
+                    <td>${statut}</td>
+                </tr>`;
+            });
+        }
+
+        // Ajouter un véhicule
+        async function ajouterVehicule() {
+            const body = {
+                marque: document.getElementById('v-marque').value,
+                modele: document.getElementById('v-modele').value,
+                immatriculation: document.getElementById('v-immatriculation').value,
+                annee: parseInt(document.getElementById('v-annee').value),
+                kilometrage: parseInt(document.getElementById('v-kilometrage').value),
+            };
+            const res = await fetchAvecToken('/api/vehicules/', {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalVehicule')).hide();
+                chargerVehicules();
+            } else {
+                const data = await res.json();
+                alert('Erreur : ' + JSON.stringify(data));
+            }
+        }
+
+        // Prendre un RDV
+        async function prendreRDV() {
+            const body = {
+                vehicule: document.getElementById('rdv-vehicule').value,
+                date: document.getElementById('rdv-date').value,
+                motif: document.getElementById('rdv-motif').value,
+            };
+            const res = await fetchAvecToken('/api/rendezvous/', {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalRDV')).hide();
+                chargerRendezVous();
+            } else {
+                const data = await res.json();
+                alert('Erreur : ' + JSON.stringify(data));
+            }
+        }
+
+        // Charger les véhicules dans le select du modal RDV
+        async function chargerVehiculesSelect() {
+            const res = await fetchAvecToken('/api/vehicules/');
+            const data = await res.json();
+            const select = document.getElementById('rdv-vehicule');
+            select.innerHTML = '';
+            if (Array.isArray(data)) {
+                data.forEach(v => {
+                    select.innerHTML += `<option value="${v.id}">${v.marque} ${v.modele} - ${v.immatriculation}</option>`;
+                });
+            }
+        }
+
+        document.getElementById('modalRDV').addEventListener('show.bs.modal', chargerVehiculesSelect);
+
+        // Déconnexion
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        // Charger les véhicules au démarrage
+        chargerVehicules();
+    </script>
+</body>
+</html>
