@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaintenanceAuto - Inscription Client</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 15px;
+        }
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 480px;
+            max-width: 100%;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border-radius: 20px 20px 0 0 !important;
+            padding: 30px;
+            text-align: center;
+        }
+        .btn-register {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+        }
+        .btn-register:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+            transition: all 0.3s;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+        }
+        .form-control:focus {
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 0.2rem rgba(231,76,60,0.25);
+        }
+        .alert { border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-car fa-3x text-white mb-3"></i>
+            <h3 class="text-white mb-0">MaintenanceAuto</h3>
+            <p class="text-white-50 mb-0">Créer un compte client</p>
+        </div>
+        <div class="card-body p-4">
+            <h5 class="text-center mb-4 text-muted">Inscription</h5>
+
+            <div id="alert-error" class="alert alert-danger d-none">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="error-message"></span>
+            </div>
+            <div id="alert-success" class="alert alert-success d-none">
+                <i class="fas fa-check-circle me-2"></i>
+                <span id="success-message"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Prénom</label>
+                    <input type="text" id="prenom" class="form-control" placeholder="Prénom">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Nom</label>
+                    <input type="text" id="nom" class="form-control" placeholder="Nom">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nom d'utilisateur</label>
+                <input type="text" id="username" class="form-control" placeholder="Choisissez un username">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Email</label>
+                <input type="email" id="email" class="form-control" placeholder="vous@email.com">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Téléphone</label>
+                <input type="text" id="telephone" class="form-control" placeholder="77 123 45 67">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Mot de passe</label>
+                <input type="password" id="password" class="form-control" placeholder="Minimum 4 caractères">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Confirmer le mot de passe</label>
+                <input type="password" id="password-confirm" class="form-control" placeholder="Retapez le mot de passe">
+            </div>
+
+            <button class="btn btn-register btn-danger w-100 text-white mb-3" onclick="register()">
+                <i class="fas fa-user-plus me-2"></i>Créer mon compte
+            </button>
+
+            <p class="text-center text-muted mb-0">
+                Déjà inscrit ?
+                <a href="/" class="text-danger fw-semibold text-decoration-none">Se connecter</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function showError(message) {
+            document.getElementById('alert-success').classList.add('d-none');
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('alert-error').classList.remove('d-none');
+        }
+
+        function showSuccess(message) {
+            document.getElementById('alert-error').classList.add('d-none');
+            document.getElementById('success-message').textContent = message;
+            document.getElementById('alert-success').classList.remove('d-none');
+        }
+
+        async function connecterEtRediriger(username, password) {
+            const loginRes = await fetch('/api/auth/login/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+            });
+            const loginData = await loginRes.json();
+
+            if (!loginRes.ok) {
+                showError('Compte créé, mais connexion automatique impossible. Connectez-vous manuellement.');
+                setTimeout(() => { window.location.href = '/'; }, 2500);
+                return;
+            }
+
+            localStorage.setItem('access_token', loginData.access);
+            localStorage.setItem('refresh_token', loginData.refresh);
+            localStorage.setItem('username', username);
+
+            const profilRes = await fetch('/api/profils/me/', {
+                headers: { 'Authorization': `Bearer ${loginData.access}` },
+            });
+            const profil = await profilRes.json();
+
+            if (!profilRes.ok || !profil.role) {
+                showError('Compte créé, mais profil introuvable. Connectez-vous manuellement.');
+                setTimeout(() => { window.location.href = '/'; }, 2500);
+                return;
+            }
+
+            localStorage.setItem('role', profil.role);
+            localStorage.setItem('user_id', profil.user.id);
+
+            showSuccess('Compte créé ! Redirection vers votre espace...');
+
+            const routes = {
+                client: '/dashboard/client/',
+                mecanicien: '/dashboard/mecanicien/',
+                administrateur: '/dashboard/admin/',
+            };
+            setTimeout(() => {
+                window.location.href = routes[profil.role] || '/dashboard/client/';
+            }, 800);
+        }
+
+        async function register() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('password-confirm').value;
+            const email = document.getElementById('email').value.trim();
+            const first_name = document.getElementById('prenom').value.trim();
+            const last_name = document.getElementById('nom').value.trim();
+            const telephone = document.getElementById('telephone').value.trim();
+
+            if (!username || !password || !email) {
+                showError('Username, email et mot de passe sont obligatoires.');
+                return;
+            }
+            if (password.length < 4) {
+                showError('Le mot de passe doit contenir au moins 4 caractères.');
+                return;
+            }
+            if (password !== passwordConfirm) {
+                showError('Les mots de passe ne correspondent pas.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/register/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        email,
+                        first_name,
+                        last_name,
+                        telephone,
+                        role: 'client',
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    await connecterEtRediriger(username, password);
+                } else {
+                    showError(data.error || 'Erreur lors de l\'inscription.');
+                }
+            } catch (error) {
+                showError('Erreur de connexion au serveur.');
+            }
+        }
+
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') register();
+        });
+    </script>
+</body>
+</html>
