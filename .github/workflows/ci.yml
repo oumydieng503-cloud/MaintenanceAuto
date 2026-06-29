@@ -7,10 +7,16 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DB_ENGINE: django.db.backends.sqlite3
+      DB_NAME: test_db.sqlite3
+      DATABASE_URL: ""
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
       - run: pip install -r requirements.txt
       - run: python manage.py test garage
