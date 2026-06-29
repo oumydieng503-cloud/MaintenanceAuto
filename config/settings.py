@@ -83,7 +83,7 @@ if os.getenv('DATABASE_URL'):
     )
 
 # Tests (local + GitHub Actions) : SQLite
-if 'test' in sys.argv:
+if 'test' in sys.argv or os.getenv('GITHUB_ACTIONS') == 'true':
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'test_db.sqlite3',
