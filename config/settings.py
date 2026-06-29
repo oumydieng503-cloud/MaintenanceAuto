@@ -74,15 +74,15 @@ DATABASES = {
     }
 }
 
-# Production cloud (Render) : PostgreSQL via DATABASE_URL
+# Production Render : PostgreSQL via DATABASE_URL
 if os.getenv('DATABASE_URL'):
     import dj_database_url
     DATABASES['default'] = dj_database_url.config(
         conn_max_age=600,
-        ssl_require=not DEBUG,
+        ssl_require=False,
     )
 
-# Tests (local + GitHub Actions) : SQLite
+# Tests + GitHub Actions : SQLite
 if 'test' in sys.argv or os.getenv('GITHUB_ACTIONS') == 'true':
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
